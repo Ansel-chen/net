@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import socket
 import threading
+import time
 from typing import Callable
 
 import config
@@ -10,6 +11,7 @@ from .http_request import HttpRequest
 from .http_response import HttpResponse
 from .router import Router
 from .static_handler import serve_static
+from .metrics import metrics_collector
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +37,9 @@ class TcpHttpServer:
 
     def _handle_client(self, client_socket: socket.socket, addr) -> None:
         client_ip = f"{addr[0]}:{addr[1]}"
+        start_time = time.perf_counter()
+        raw_data = b""
+        response: HttpResponse | None = None
         try:
             raw_data = client_socket.recv(config.MAX_REQUEST_SIZE)
             if not raw_data:
@@ -48,5 +53,12 @@ class TcpHttpServer:
             logger.exception("处理请求出错: %s", exc)
             response = HttpResponse.text("服务器内部错误", status=500)
         finally:
-            client_socket.sendall(response.to_bytes())
-            client_socket.close()
+            if response is None:
+                response = HttpResponse.text("服务器内部错误", status=500)
+            payload = response.to_bytes()
+            try:
+                client_socket.sendall(payload)
+            finally:
+                client_socket.close()
+            duration_ms = (time.perf_counter() - start_time) * 1000
+            metrics_collector.record(duration_ms, len(raw_data), len(payload))

@@ -5,6 +5,26 @@
     <p class="meta">作者：{{ post.author_name }} · 分类：{{ post.tags or '未分类' }} · 发布时间：{{ post.created_at }}</p>
     <div class="body">{{ post.body | replace('\n', '<br>') | safe }}</div>
 </article>
+<section class="reactions">
+    <h2>互动</h2>
+    <div class="reaction-summary">
+        <span>👍 喜欢：<strong id="like-count">{{ post.like_count }}</strong></span>
+        <span>⭐ 收藏：<strong id="favorite-count">{{ post.favorite_count }}</strong></span>
+    </div>
+    {% if user %}
+    <div class="reaction-actions">
+        <button type="button" class="reaction-btn {% if post.liked %}active{% endif %}" data-type="like">
+            👍 喜欢
+        </button>
+        <button type="button" class="reaction-btn {% if post.favorited %}active{% endif %}" data-type="favorite">
+            ⭐ 收藏
+        </button>
+    </div>
+    <div id="reaction-message" class="form-message"></div>
+    {% else %}
+    <p class="hint">登录后可以点赞或收藏这篇文章。</p>
+    {% endif %}
+</section>
 <section class="comments">
     <h2>评论</h2>
     {% if comments %}
@@ -49,6 +69,53 @@ if (commentForm) {
         } else {
             commentMsg.textContent = data.error || '评论失败';
         }
+    });
+}
+
+const reactionButtons = document.querySelectorAll('.reaction-btn');
+if (reactionButtons.length) {
+    let liked = {{ 'true' if post.liked else 'false' }};
+    let favorited = {{ 'true' if post.favorited else 'false' }};
+    const msg = document.getElementById('reaction-message');
+    const updateState = (type, active) => {
+        reactionButtons.forEach(btn => {
+            if (btn.dataset.type === type) {
+                btn.classList.toggle('active', active);
+            }
+        });
+    };
+    reactionButtons.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const type = btn.dataset.type;
+            btn.disabled = true;
+            msg.textContent = '同步中...';
+            try {
+                const resp = await fetch('/api/posts/{{ post.id }}/reaction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reaction: type })
+                });
+                const data = await resp.json();
+                if (!resp.ok) {
+                    msg.textContent = data.error || '操作失败';
+                } else {
+                    document.getElementById('like-count').textContent = data.stats.like;
+                    document.getElementById('favorite-count').textContent = data.stats.favorite;
+                    if (type === 'like') {
+                        liked = !liked;
+                        updateState('like', liked);
+                    } else {
+                        favorited = !favorited;
+                        updateState('favorite', favorited);
+                    }
+                    msg.textContent = '已更新';
+                }
+            } catch (error) {
+                msg.textContent = '网络异常，请稍后再试';
+            } finally {
+                btn.disabled = false;
+            }
+        });
     });
 }
 </script>

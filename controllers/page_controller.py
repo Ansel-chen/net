@@ -46,11 +46,11 @@ def register_page(request: HttpRequest) -> HttpResponse:
 
 def post_detail(request: HttpRequest) -> HttpResponse:
     post_id = int(request.path_params.get("post_id", 0))
-    post = post_service.get_post(post_id)
+    user = get_current_user(request)
+    post = post_service.get_post(post_id, user["id"] if user else None)
     if not post:
         return HttpResponse.text("文章不存在", status=404)
     comments = comment_service.list_comments(post_id)
-    user = get_current_user(request)
     return _render(
         "post_detail.html",
         {
@@ -67,12 +67,16 @@ def profile_page(request: HttpRequest) -> HttpResponse:
     if not user:
         return HttpResponse.redirect("/login")
     posts = post_service.list_by_author(user["id"], limit=50)
+    liked_posts = post_service.list_reacted_posts(user["id"], "like", limit=30)
+    favorite_posts = post_service.list_reacted_posts(user["id"], "favorite", limit=30)
     return _render(
         "profile.html",
         {
             "title": "个人主页",
             "user": user,
             "posts": posts,
+            "liked_posts": liked_posts,
+            "favorite_posts": favorite_posts,
         },
     )
 
@@ -84,3 +88,47 @@ def logout_page(request: HttpRequest) -> HttpResponse:
     resp = HttpResponse.redirect("/")
     resp.headers["Set-Cookie"] = "session_id=; Path=/; HttpOnly; Max-Age=0"
     return resp
+
+
+def new_post_page(request: HttpRequest) -> HttpResponse:
+    user = get_current_user(request)
+    if not user:
+        return HttpResponse.redirect("/login")
+    return _render(
+        "new_post.html",
+        {
+            "title": "写文章",
+            "user": user,
+            "form": {"title": "", "body": "", "tags": ""},
+            "error": None,
+        },
+    )
+
+
+def submit_post_page(request: HttpRequest) -> HttpResponse:
+    user = get_current_user(request)
+    if not user:
+        return HttpResponse.redirect("/login")
+    payload = request.form or request.json_data or {}
+    title = (payload.get("title") or "").strip()
+    body = (payload.get("body") or "").strip()
+    tags = (payload.get("tags") or "").strip()
+    form_state = {"title": title, "body": body, "tags": tags}
+    if not title:
+        return _render(
+            "new_post.html",
+            {"title": "写文章", "user": user, "form": form_state, "error": "标题不能为空"},
+        )
+    try:
+        post_id = post_service.create_post(user["id"], title, body, tags or None)
+    except Exception as exc:
+        return _render(
+            "new_post.html",
+            {
+                "title": "写文章",
+                "user": user,
+                "form": form_state,
+                "error": f"创建失败: {exc}",
+            },
+        )
+    return HttpResponse.redirect(f"/posts/{post_id}")

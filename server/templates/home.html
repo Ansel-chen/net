@@ -25,6 +25,8 @@
             <p>{{ post.body[:200] }}{% if post.body|length > 200 %}...{% endif %}</p>
             <div class="actions">
                 <a href="/posts/{{ post.id }}">阅读全文</a>
+                <span class="stat">👍 {{ post.like_count }}</span>
+                <span class="stat">⭐ {{ post.favorite_count }}</span>
             </div>
         </article>
         {% endfor %}

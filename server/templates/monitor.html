@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card monitor-panel">
+    <h1>网络性能监测面板</h1>
+    <p>以下指标基于最近 {{ metrics.window_seconds }} 秒内的真实请求，帮助你快速掌握服务的网络健康状况。</p>
+    <div class="monitor-grid">
+        <div class="monitor-metric">
+            <p class="label">平均延迟</p>
+            <p class="value" id="metric-latency">{{ '%.2f'|format(metrics.latency_ms_avg) }} ms</p>
+        </div>
+        <div class="monitor-metric">
+            <p class="label">最小时延</p>
+            <p class="value" id="metric-latency-min">{{ '%.2f'|format(metrics.latency_ms_min) }} ms</p>
+        </div>
+        <div class="monitor-metric">
+            <p class="label">最大时延</p>
+            <p class="value" id="metric-latency-max">{{ '%.2f'|format(metrics.latency_ms_max) }} ms</p>
+        </div>
+        <div class="monitor-metric">
+            <p class="label">平均 RTT</p>
+            <p class="value" id="metric-rtt">{{ '%.2f'|format(metrics.rtt_ms_avg) }} ms</p>
+        </div>
+        <div class="monitor-metric">
+            <p class="label">吞吐量</p>
+            <p class="value" id="metric-throughput">{{ '%.2f'|format(metrics.throughput_kbps) }} KB/s</p>
+        </div>
+        <div class="monitor-metric">
+            <p class="label">请求速率</p>
+            <p class="value" id="metric-rps">{{ '%.2f'|format(metrics.requests_per_sec) }} req/s</p>
+        </div>
+    </div>
+    <p class="monitor-meta">窗口内样本数：<span id="metric-samples">{{ metrics.sample_count }}</span></p>
+</section>
+<script>
+async function fetchMetrics() {
+    try {
+        const resp = await fetch('/api/monitor/network');
+        if (!resp.ok) {
+            return;
+        }
+        const data = await resp.json();
+        const metrics = data.metrics;
+        const format = (value) => Number(value || 0).toFixed(2);
+        document.getElementById('metric-latency').textContent = `${format(metrics.latency_ms_avg)} ms`;
+        document.getElementById('metric-latency-min').textContent = `${format(metrics.latency_ms_min)} ms`;
+        document.getElementById('metric-latency-max').textContent = `${format(metrics.latency_ms_max)} ms`;
+        document.getElementById('metric-rtt').textContent = `${format(metrics.rtt_ms_avg)} ms`;
+        document.getElementById('metric-throughput').textContent = `${format(metrics.throughput_kbps)} KB/s`;
+        document.getElementById('metric-rps').textContent = `${format(metrics.requests_per_sec)} req/s`;
+        document.getElementById('metric-samples').textContent = metrics.sample_count;
+    } catch (err) {
+        console.warn('获取监测数据失败', err);
+    }
+}
+setInterval(fetchMetrics, 3000);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        fetchMetrics();
+    }
+});
+fetchMetrics();
+</script>
+{% endblock %}

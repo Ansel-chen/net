@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, Set
 
 from .db import get_cursor
 
@@ -24,3 +24,12 @@ def toggle_reaction(post_id: int, user_id: int, reaction_type: str) -> Dict[str,
         )
         stats = {row["reaction_type"]: row["cnt"] for row in cursor.fetchall()}
         return {"like": stats.get("like", 0), "favorite": stats.get("favorite", 0)}
+
+
+def get_user_reactions(post_id: int, user_id: int) -> Set[str]:
+    with get_cursor() as cursor:
+        cursor.execute(
+            "SELECT reaction_type FROM reactions WHERE post_id=%s AND user_id=%s",
+            (post_id, user_id),
+        )
+        return {row["reaction_type"] for row in cursor.fetchall()}

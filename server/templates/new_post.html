@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card form-card">
+    <h1>写文章</h1>
+    <p>填写标题、正文和可选的标签，提交后会直接保存到数据库并跳转至文章详情页。</p>
+    {% if error %}
+    <p class="form-message">{{ error }}</p>
+    {% endif %}
+    <form method="post" action="/posts/new">
+        <label>
+            标题
+            <input type="text" name="title" placeholder="请输入标题" value="{{ form.title }}" required>
+        </label>
+        <label>
+            正文
+            <textarea name="body" rows="10" placeholder="在此输入正文内容" required>{{ form.body }}</textarea>
+        </label>
+        <label>
+            标签（可选）
+            <input type="text" name="tags" placeholder="例如：随笔" value="{{ form.tags }}">
+        </label>
+        <button type="submit">发布文章</button>
+    </form>
+</section>
+{% endblock %}

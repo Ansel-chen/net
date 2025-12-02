@@ -64,6 +64,15 @@ form button {
     cursor: pointer;
     border: none;
 }
+.actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.actions .stat {
+    font-size: 0.9rem;
+    color: #4b5563;
+}
 .post-list article,
 .card,
 .post-detail,
@@ -99,8 +108,69 @@ form button {
     padding: 0.5rem 0;
     border-bottom: 1px solid #f3f4f6;
 }
+.reactions {
+    background: #fff;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+.reaction-summary {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+.reaction-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.reaction-btn {
+    padding: 0.6rem 1.2rem;
+    border: 1px solid #d1d5db;
+    border-radius: 999px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+.reaction-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+.hint {
+    color: #6b7280;
+}
 .site-footer {
     text-align: center;
     padding: 2rem 0;
+    color: #6b7280;
+}
+.monitor-panel {
+    margin-top: 1.5rem;
+}
+.monitor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.monitor-metric {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+}
+.monitor-metric .label {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0;
+}
+.monitor-metric .value {
+    font-size: 1.25rem;
+    margin: 0.2rem 0 0;
+}
+.monitor-meta {
+    margin-top: 1rem;
     color: #6b7280;
 }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from controllers.auth_controller import get_current_user
 from server.http_request import HttpRequest
 from server.http_response import HttpResponse
 from services import post_service
@@ -36,7 +37,8 @@ def create_post(request: HttpRequest) -> HttpResponse:
 
 def get_post(request: HttpRequest) -> HttpResponse:
     post_id = int(request.path_params.get("post_id"))
-    post = post_service.get_post(post_id)
+    user = get_current_user(request)
+    post = post_service.get_post(post_id, user["id"] if user else None)
     if not post:
         return HttpResponse.json({"error": "文章不存在"}, status=404)
     return HttpResponse.json({"post": post})

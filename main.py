@@ -1,7 +1,16 @@
 import logging
 
 import config
-from controllers import auth_controller, comment_controller, message_controller, page_controller, post_controller, reaction_controller, subscription_controller
+from controllers import (
+    auth_controller,
+    comment_controller,
+    message_controller,
+    monitor_controller,
+    page_controller,
+    post_controller,
+    reaction_controller,
+    subscription_controller,
+)
 from server.router import Router
 from server.tcp_http_server import TcpHttpServer
 
@@ -16,8 +25,11 @@ def build_router() -> Router:
     router.add_route("GET", "/login", page_controller.login_page)
     router.add_route("GET", "/register", page_controller.register_page)
     router.add_route("GET", "/logout", page_controller.logout_page)
+    router.add_route("GET", "/posts/new", page_controller.new_post_page)
+    router.add_route("POST", "/posts/new", page_controller.submit_post_page)
     router.add_route("GET", "/posts/{post_id}", page_controller.post_detail)
     router.add_route("GET", "/profile", page_controller.profile_page)
+    router.add_route("GET", "/monitor", monitor_controller.dashboard)
 
     # 登录注册与会话
     router.add_route("POST", "/api/register", auth_controller.register)
@@ -50,6 +62,7 @@ def build_router() -> Router:
     router.add_route("POST", "/api/messages", message_controller.send_message)
     router.add_route("GET", "/api/messages/inbox", message_controller.inbox)
     router.add_route("GET", "/api/messages/outbox", message_controller.outbox)
+    router.add_route("GET", "/api/monitor/network", monitor_controller.network_metrics)
 
     return router
 

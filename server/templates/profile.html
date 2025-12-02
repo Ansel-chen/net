@@ -15,10 +15,41 @@
             <h3><a href="/posts/{{ post.id }}">{{ post.title }}</a></h3>
             <p class="meta">分类：{{ post.tags or '未分类' }} · 更新时间：{{ post.updated_at }}</p>
             <p>{{ post.body[:160] }}{% if post.body|length > 160 %}...{% endif %}</p>
+            <p class="meta">👍 {{ post.like_count }} · ⭐ {{ post.favorite_count }}</p>
         </article>
         {% endfor %}
     {% else %}
         <p>还没有发布任何文章，可通过 API 创建。</p>
+    {% endif %}
+</section>
+
+<section class="post-list">
+    <h2>我点赞过的文章</h2>
+    {% if liked_posts %}
+        {% for post in liked_posts %}
+        <article>
+            <h3><a href="/posts/{{ post.id }}">{{ post.title }}</a></h3>
+            <p class="meta">作者：{{ post.author_name }} · 点赞时间：{{ post.reacted_at }} · 👍 {{ post.like_count }} · ⭐ {{ post.favorite_count }}</p>
+            <p>{{ post.body[:160] }}{% if post.body|length > 160 %}...{% endif %}</p>
+        </article>
+        {% endfor %}
+    {% else %}
+        <p>还没有点赞任何文章。</p>
+    {% endif %}
+</section>
+
+<section class="post-list">
+    <h2>我收藏过的文章</h2>
+    {% if favorite_posts %}
+        {% for post in favorite_posts %}
+        <article>
+            <h3><a href="/posts/{{ post.id }}">{{ post.title }}</a></h3>
+            <p class="meta">作者：{{ post.author_name }} · 收藏时间：{{ post.reacted_at }} · 👍 {{ post.like_count }} · ⭐ {{ post.favorite_count }}</p>
+            <p>{{ post.body[:160] }}{% if post.body|length > 160 %}...{% endif %}</p>
+        </article>
+        {% endfor %}
+    {% else %}
+        <p>还没有收藏任何文章。</p>
     {% endif %}
 </section>
 {% endblock %}

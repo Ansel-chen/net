@@ -28,6 +28,13 @@ def list_feed(user_id: int, limit: int = 20) -> List[Dict]:
             FROM posts
             JOIN subscriptions ON posts.author_id = subscriptions.author_id
             JOIN users ON users.id = posts.author_id
+            LEFT JOIN (
+                SELECT post_id,
+                       SUM(CASE WHEN reaction_type = 'like' THEN 1 ELSE 0 END) AS like_count,
+                       SUM(CASE WHEN reaction_type = 'favorite' THEN 1 ELSE 0 END) AS favorite_count
+                FROM reactions
+                GROUP BY post_id
+            ) AS react ON react.post_id = posts.id
             WHERE subscriptions.follower_id=%s
             ORDER BY posts.created_at DESC LIMIT %s
             """,

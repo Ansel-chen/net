@@ -11,8 +11,10 @@
     <div class="brand"><a href="/">TCP 博客</a></div>
     <nav>
         <a href="/">首页</a>
+        <a href="/monitor">监测面板</a>
         <a href="/profile">个人中心</a>
         {% if user %}
+        <a href="/posts/new">写文章</a>
         <span class="welcome">你好，{{ user.nickname }}</span>
         <a href="/logout">退出</a>
         {% else %}
