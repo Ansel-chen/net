@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+    <h1>欢迎来到 TCP 博客</h1>
+    <p>使用底层 Socket 构建的迷你博客系统，支持文章浏览、搜索、分类、评论与互动。</p>
+</section>
+<section class="search-panel">
+    <form method="get" action="/">
+        <input type="text" name="q" placeholder="搜索标题或正文" value="{{ keyword }}">
+        <select name="tag">
+            <option value="">全部分类</option>
+            {% for cat in categories %}
+            <option value="{{ cat.category }}" {% if tag == cat.category %}selected{% endif %}>{{ cat.category }} ({{ cat.count }})</option>
+            {% endfor %}
+        </select>
+        <button type="submit">搜索</button>
+    </form>
+</section>
+<section class="post-list">
+    {% if posts %}
+        {% for post in posts %}
+        <article>
+            <h2><a href="/posts/{{ post.id }}">{{ post.title }}</a></h2>
+            <p class="meta">作者：{{ post.author_name }} · 分类：{{ post.tags or "未分类" }} · 发布时间：{{ post.created_at }}</p>
+            <p>{{ post.body[:200] }}{% if post.body|length > 200 %}...{% endif %}</p>
+            <div class="actions">
+                <a href="/posts/{{ post.id }}">阅读全文</a>
+            </div>
+        </article>
+        {% endfor %}
+    {% else %}
+        <p>暂无文章，登录后可通过 API 创建。</p>
+    {% endif %}
+</section>
+{% endblock %}

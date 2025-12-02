@@ -30,9 +30,51 @@ def list_by_author(author_id: int, limit: int = 20) -> List[Dict]:
         return cursor.fetchall()
 
 
+def search_posts(keyword: str | None, tag: str | None, limit: int = 20, offset: int = 0) -> List[Dict]:
+    with get_cursor() as cursor:
+        sql = [
+            "SELECT posts.*, users.nickname AS author_name",
+            "FROM posts JOIN users ON posts.author_id = users.id",
+        ]
+        conditions = []
+        params: list = []
+        if keyword:
+            like = f"%{keyword}%"
+            conditions.append("(posts.title LIKE %s OR posts.body LIKE %s)")
+            params.extend([like, like])
+        if tag:
+            conditions.append("posts.tags = %s")
+            params.append(tag)
+        if conditions:
+            sql.append("WHERE " + " AND ".join(conditions))
+        sql.append("ORDER BY posts.created_at DESC LIMIT %s OFFSET %s")
+        params.extend([limit, offset])
+        cursor.execute(" ".join(sql), params)
+        return cursor.fetchall()
+
+
+def list_categories(limit: int = 10) -> List[Dict]:
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT tags AS category, COUNT(*) AS count
+            FROM posts
+            WHERE tags IS NOT NULL AND tags <> ''
+            GROUP BY tags
+            ORDER BY count DESC
+            LIMIT %s
+            """,
+            (limit,),
+        )
+        return cursor.fetchall()
+
+
 def get_post(post_id: int) -> Optional[Dict]:
     with get_cursor() as cursor:
-        cursor.execute("SELECT * FROM posts WHERE id=%s", (post_id,))
+        cursor.execute(
+            "SELECT posts.*, users.nickname AS author_name FROM posts JOIN users ON posts.author_id = users.id WHERE posts.id=%s",
+            (post_id,),
+        )
         return cursor.fetchone()
 
 

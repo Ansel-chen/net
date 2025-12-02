@@ -13,6 +13,11 @@ def build_router() -> Router:
 
     # 页面与静态展示
     router.add_route("GET", "/", page_controller.home)
+    router.add_route("GET", "/login", page_controller.login_page)
+    router.add_route("GET", "/register", page_controller.register_page)
+    router.add_route("GET", "/logout", page_controller.logout_page)
+    router.add_route("GET", "/posts/{post_id}", page_controller.post_detail)
+    router.add_route("GET", "/profile", page_controller.profile_page)
 
     # 登录注册与会话
     router.add_route("POST", "/api/register", auth_controller.register)
@@ -22,6 +27,7 @@ def build_router() -> Router:
 
     # 文章 CRUD
     router.add_route("GET", "/api/posts", post_controller.list_posts)
+    router.add_route("GET", "/api/posts/search", post_controller.search_posts)
     router.add_route("POST", "/api/posts", post_controller.create_post)
     router.add_route("GET", "/api/posts/{post_id}", post_controller.get_post)
     router.add_route("POST", "/api/posts/{post_id}/edit", post_controller.update_post)

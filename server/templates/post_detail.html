@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="post-detail">
+    <h1>{{ post.title }}</h1>
+    <p class="meta">作者：{{ post.author_name }} · 分类：{{ post.tags or '未分类' }} · 发布时间：{{ post.created_at }}</p>
+    <div class="body">{{ post.body | replace('\n', '<br>') | safe }}</div>
+</article>
+<section class="comments">
+    <h2>评论</h2>
+    {% if comments %}
+        <ul>
+            {% for item in comments %}
+            <li>
+                <div class="comment-author">{{ item.author_name }} · {{ item.created_at }}</div>
+                <p>{{ item.body }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>暂无评论。</p>
+    {% endif %}
+    {% if user %}
+    <form id="comment-form">
+        <textarea name="body" rows="3" placeholder="写下你的想法" required></textarea>
+        <button type="submit">提交评论</button>
+    </form>
+    <div id="comment-message" class="form-message"></div>
+    {% else %}
+    <p>请先 <a href="/login">登录</a> 后评论。</p>
+    {% endif %}
+</section>
+<script>
+const commentForm = document.getElementById('comment-form');
+if (commentForm) {
+    const commentMsg = document.getElementById('comment-message');
+    commentForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        commentMsg.textContent = '正在提交...';
+        const payload = { body: commentForm.body.value };
+        const resp = await fetch('/api/posts/{{ post.id }}/comments', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+            commentMsg.textContent = '评论成功，刷新中...';
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            commentMsg.textContent = data.error || '评论失败';
+        }
+    });
+}
+</script>
+{% endblock %}

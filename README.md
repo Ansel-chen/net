@@ -8,12 +8,14 @@
 ## Functional Scope
 1. Authentication: user registration, login, logout, session cookie management.
 2. Blog content: create/read/update/delete articles, list with pagination, detail view.
-3. Mandatory extras:
+3. Search & categories: keyword filtering (`q`) and category dropdown (`tag`) exposed via `/api/posts/search` 与首页筛选表单。
+4. Profile page: browser route `/profile` 展示个人资料、文章列表。
+5. Mandatory extras:
    - Article comments with nested display.
    - Favorites/likes (one per user per article) plus aggregate counters.
    - Article push & subscription: users can follow authors, receive a personalized feed.
    - Private messaging between users (basic inbox/outbox model).
-4. Auxiliary pages: profile view, search/filter by tag/category, home timeline.
+6. Auxiliary pages: HTML home timeline、登录/注册、文章详情、评论交互。
 
 ## High-Level Architecture
 ```
@@ -90,6 +92,9 @@ Key indices: unique constraints on `users.username`, `reactions(post_id, user_id
 
 ## HTTP Endpoints (initial set)
 - `GET /` home timeline (if logged in show followed authors; else popular posts)
+- `GET /login`, `GET /register`, `GET /logout` browser pages with fetch-based auth forms
+- `GET /posts/{id}` article detail page + inline comment submission
+- `GET /profile` personal dashboard (requires login)
 - `GET /login`, `POST /login`, `GET /register`, `POST /register`, `POST /logout`
 - `GET /posts`, `GET /posts/{id}`
 - `POST /posts`, `POST /posts/{id}/edit`, `POST /posts/{id}/delete`
@@ -98,6 +103,14 @@ Key indices: unique constraints on `users.username`, `reactions(post_id, user_id
 - `POST /authors/{id}/subscribe`, `POST /authors/{id}/unsubscribe`
 - `GET /feed` personalized feed
 - `GET /messages`, `GET /messages/new`, `POST /messages`, `GET /messages/{id}`
+- `GET /api/posts/search` keyword/category filter for REST or homepage UI
+
+## Browser UI Overview
+- **Home (`/`)**: 展示最新文章，支持关键词与分类联动搜索，下方列表链接到详情页。
+- **登录/注册 (`/login`, `/register`)**: 纯前端表单，调用 `/api/login`、`/api/register` 完成鉴权，成功后写入 `session_id` cookie。
+- **文章详情 (`/posts/{id}`)**: 渲染正文与评论，并允许已登录用户通过 fetch 调用 `/api/posts/{id}/comments` 发表评论。
+- **个人主页 (`/profile`)**: 登录后显示用户个人信息、文章列表，可配合 API 做编辑或删除。
+- **静态资源**: 所有 CSS 放在 `server/static`，模板位于 `server/templates` 并由 `server/template_renderer.py` 的 Jinja 环境加载。
 
 ## Technology Stack
 - Python 3.10+ running inside `conda` environment `net`.
@@ -106,9 +119,8 @@ Key indices: unique constraints on `users.username`, `reactions(post_id, user_id
 - MySQL 8.x server accessible via configurable DSN from `.env` or config settings.
 
 ## Next Steps
-1. Create `requirements.txt`, `config.py`, and code directories as outlined.
-2. Author `db/schema.sql` with full table creation statements and helpful indexes.
-3. Implement socket server core (`tcp_http_server.py`) and request/response helpers.
-4. Incrementally build controllers/services, wiring them to MySQL using the repository layer.
-5. Provide HTML templates and static assets; ensure responses include correct HTTP headers.
-6. Write integration tests/scripts that run HTTP requests via `socket` or `requests` for verification.
+1. Install dependencies: `pip install -r requirements.txt` (确保已安装 MySQL 并能通过 `config.py` 的 DSN 访问)。
+2. 初始化数据库：执行 `db/schema.sql` 创建各数据表；按需插入测试用户与文章数据。
+3. 启动服务器：`python main.py`，默认监听 `127.0.0.1:8080`。
+4. 浏览器访问 `http://127.0.0.1:8080/`，可使用顶部导航进入登录/注册、个人中心等页面，或通过 Postman 调用 `/api/*` 接口进行写操作。
+5. 如需 HTTPS，可在 `server/tcp_http_server.py` 中封装 `ssl.wrap_socket` 增强；如需更多前端交互，可以在 `server/templates` 与 `server/static` 目录中扩展模板与样式。

@@ -1,13 +1,86 @@
+from __future__ import annotations
+
+from controllers.auth_controller import get_current_user
 from server.http_request import HttpRequest
 from server.http_response import HttpResponse
+from server.session import session_store
+from server.template_renderer import render
+from services import comment_service, post_service
 
 
-def home(_: HttpRequest) -> HttpResponse:
-    html = """
-    <html><head><title>TCP 博客</title></head>
-    <body>
-    <h1>TCP 博客系统</h1>
-    <p>请使用 /api/* 接口与系统交互，可配合 curl 或 Postman 调试。</p>
-    </body></html>
-    """
-    return HttpResponse.text(html)
+def _render(template: str, context: dict, status: int = 200) -> HttpResponse:
+    html = render(template, context)
+    return HttpResponse.text(html, status=status)
+
+
+def home(request: HttpRequest) -> HttpResponse:
+    user = get_current_user(request)
+    keyword = request.query.get("q")
+    tag = request.query.get("tag")
+    posts = post_service.search_posts(keyword, tag, limit=20)
+    categories = post_service.list_categories(limit=10)
+    return _render(
+        "home.html",
+        {
+            "title": "TCP 博客",
+            "user": user,
+            "posts": posts,
+            "keyword": keyword or "",
+            "tag": tag or "",
+            "categories": categories,
+        },
+    )
+
+
+def login_page(request: HttpRequest) -> HttpResponse:
+    if get_current_user(request):
+        return HttpResponse.redirect("/")
+    return _render("login.html", {"title": "登录 - TCP 博客"})
+
+
+def register_page(request: HttpRequest) -> HttpResponse:
+    if get_current_user(request):
+        return HttpResponse.redirect("/")
+    return _render("register.html", {"title": "注册 - TCP 博客"})
+
+
+def post_detail(request: HttpRequest) -> HttpResponse:
+    post_id = int(request.path_params.get("post_id", 0))
+    post = post_service.get_post(post_id)
+    if not post:
+        return HttpResponse.text("文章不存在", status=404)
+    comments = comment_service.list_comments(post_id)
+    user = get_current_user(request)
+    return _render(
+        "post_detail.html",
+        {
+            "title": post["title"],
+            "post": post,
+            "comments": comments,
+            "user": user,
+        },
+    )
+
+
+def profile_page(request: HttpRequest) -> HttpResponse:
+    user = get_current_user(request)
+    if not user:
+        return HttpResponse.redirect("/login")
+    posts = post_service.list_by_author(user["id"], limit=50)
+    return _render(
+        "profile.html",
+        {
+            "title": "个人主页",
+            "user": user,
+            "posts": posts,
+        },
+    )
+
+
+def logout_page(request: HttpRequest) -> HttpResponse:
+    session_id = request.cookies.get("session_id")
+    if session_id:
+        session_store.delete(session_id)
+    resp = HttpResponse.redirect("/")
+    resp.headers["Set-Cookie"] = "session_id=; Path=/; HttpOnly; Max-Age=0"
+    return resp

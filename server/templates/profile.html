@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h2>个人信息</h2>
+    <p><strong>昵称：</strong>{{ user.nickname }}</p>
+    <p><strong>用户名：</strong>{{ user.username }}</p>
+    <p><strong>邮箱：</strong>{{ user.email or '未填写' }}</p>
+    <p><strong>注册时间：</strong>{{ user.created_at }}</p>
+</section>
+<section class="post-list">
+    <h2>我发表的文章</h2>
+    {% if posts %}
+        {% for post in posts %}
+        <article>
+            <h3><a href="/posts/{{ post.id }}">{{ post.title }}</a></h3>
+            <p class="meta">分类：{{ post.tags or '未分类' }} · 更新时间：{{ post.updated_at }}</p>
+            <p>{{ post.body[:160] }}{% if post.body|length > 160 %}...{% endif %}</p>
+        </article>
+        {% endfor %}
+    {% else %}
+        <p>还没有发布任何文章，可通过 API 创建。</p>
+    {% endif %}
+</section>
+{% endblock %}

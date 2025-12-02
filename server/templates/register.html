@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h2>创建新账号</h2>
+    <form id="register-form">
+        <label>用户名<input type="text" name="username" required></label>
+        <label>昵称<input type="text" name="nickname" required></label>
+        <label>邮箱<input type="email" name="email"></label>
+        <label>密码<input type="password" name="password" required></label>
+        <button type="submit">注册</button>
+    </form>
+    <p class="tip">已有账号？<a href="/login">去登录</a></p>
+    <div id="register-message" class="form-message"></div>
+</section>
+<script>
+const registerForm = document.getElementById('register-form');
+const registerMsg = document.getElementById('register-message');
+registerForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    registerMsg.textContent = '正在提交...';
+    const payload = Object.fromEntries(new FormData(registerForm).entries());
+    const resp = await fetch('/api/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+        registerMsg.textContent = '注册成功，前往登录页...';
+        setTimeout(() => window.location.href = '/login', 800);
+    } else {
+        registerMsg.textContent = data.error || '注册失败';
+    }
+});
+</script>
+{% endblock %}

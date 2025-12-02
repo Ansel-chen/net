@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h2>账号登录</h2>
+    <form id="login-form">
+        <label>用户名<input type="text" name="username" required></label>
+        <label>密码<input type="password" name="password" required></label>
+        <button type="submit">登录</button>
+    </form>
+    <p class="tip">没有账号？<a href="/register">去注册</a></p>
+    <div id="login-message" class="form-message"></div>
+</section>
+<script>
+const loginForm = document.getElementById('login-form');
+const loginMsg = document.getElementById('login-message');
+loginForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    loginMsg.textContent = '正在登录...';
+    const formData = new FormData(loginForm);
+    const payload = Object.fromEntries(formData.entries());
+    const resp = await fetch('/api/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+        loginMsg.textContent = '登录成功，正在跳转...';
+        window.location.href = '/';
+    } else {
+        loginMsg.textContent = data.error || '登录失败';
+    }
+});
+</script>
+{% endblock %}

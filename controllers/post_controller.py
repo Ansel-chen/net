@@ -14,6 +14,15 @@ def list_posts(request: HttpRequest) -> HttpResponse:
     return HttpResponse.json({"items": data})
 
 
+def search_posts(request: HttpRequest) -> HttpResponse:
+    limit = int(request.query.get("limit", "20"))
+    offset = int(request.query.get("offset", "0"))
+    keyword = request.query.get("q")
+    tag = request.query.get("tag")
+    data = post_service.search_posts(keyword, tag, limit, offset)
+    return HttpResponse.json({"items": data, "filters": {"q": keyword, "tag": tag}})
+
+
 def create_post(request: HttpRequest) -> HttpResponse:
     user, error = require_login(request)
     if error:
