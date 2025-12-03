@@ -2,7 +2,14 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from datetime import date, datetime
 from typing import Dict, Optional
+
+
+def _json_default(value):
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
 
 
 @dataclass
@@ -42,7 +49,7 @@ class HttpResponse:
     def json(cls, payload: dict, status: int = 200) -> "HttpResponse":
         """返回 JSON 响应"""
 
-        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        body = json.dumps(payload, ensure_ascii=False, default=_json_default).encode("utf-8")
         headers = {
             "Content-Type": "application/json; charset=utf-8",
             "Content-Length": str(len(body)),
