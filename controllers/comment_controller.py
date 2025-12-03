@@ -18,7 +18,9 @@ def add_comment(request: HttpRequest) -> HttpResponse:
     if error:
         return error
     payload = request.json_data or request.form
-    body = payload.get("body") if payload else None
+    body = None
+    if payload:
+        body = payload.get("body") or payload.get("content")
     if not body:
         return HttpResponse.json({"error": "评论内容不能为空"}, status=400)
     post_id = int(request.path_params.get("post_id"))
