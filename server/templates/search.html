@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="search-hero card">
+    <p class="eyebrow">全站搜索</p>
+    <h1>找到任何文章与作者</h1>
+    <p class="lead">输入关键字或选择标签，快速定位想阅读的文章。支持标题、正文与作者昵称模糊匹配。</p>
+    <form class="search-form" method="get" action="/search">
+        <div class="input-group">
+            <label>关键字</label>
+            <input type="search" name="q" placeholder="输入标题、正文或作者" value="{{ keyword }}">
+        </div>
+        <div class="input-group">
+            <label>标签</label>
+            <select name="tag">
+                <option value="">全部</option>
+                {% for cat in categories %}
+                <option value="{{ cat.category }}" {% if tag == cat.category %}selected{% endif %}>
+                    {{ cat.category }} ({{ cat.count }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit">开始搜索</button>
+    </form>
+    {% if has_query %}
+    <div class="search-info">
+        <div class="stat">
+            <span class="label">匹配结果</span>
+            <span class="value">{{ result_count }}</span>
+        </div>
+        <div class="stat">
+            <span class="label">当前筛选</span>
+            <span class="value">{{ keyword or tag or '全部文章' }}</span>
+        </div>
+    </div>
+    {% endif %}
+</section>
+
+<section class="search-results-section">
+    {% if not has_query %}
+    <div class="empty-state">
+        <p>输入关键词或选择标签即可查看搜索结果。</p>
+        <p class="hint">例如：TCP、监控、Socket、收藏</p>
+    </div>
+    {% else %}
+        {% if results %}
+        <div class="search-results">
+            {% for post in results %}
+            <article class="search-hit">
+                <div class="post-meta">
+                    <span class="badge">{{ post.tags or '未分类' }}</span>
+                    <span>{{ post.created_at }}</span>
+                </div>
+                <h3><a href="/posts/{{ post.id }}">{{ post.title }}</a></h3>
+                <p>{{ post.body[:200] }}{% if post.body|length > 200 %}...{% endif %}</p>
+                <div class="post-footer">
+                    <div class="author">作者：{{ post.author_name }}</div>
+                    <div class="stats">
+                        <span>👍 {{ post.like_count }}</span>
+                        <span>⭐ {{ post.favorite_count }}</span>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>没有找到匹配的文章，可以尝试减少关键词或更换标签。</p>
+            <a class="pill-btn" href="/posts/new">去创作属于你的内容</a>
+        </div>
+        {% endif %}
+    {% endif %}
+</section>
+{% endblock %}

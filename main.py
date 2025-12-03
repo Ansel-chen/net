@@ -29,6 +29,7 @@ def build_router() -> Router:
     router.add_route("POST", "/posts/new", page_controller.submit_post_page)
     router.add_route("GET", "/posts/{post_id}", page_controller.post_detail)
     router.add_route("GET", "/profile", page_controller.profile_page)
+    router.add_route("GET", "/search", page_controller.search_page)
     router.add_route("GET", "/monitor", monitor_controller.dashboard)
 
     # 登录注册与会话

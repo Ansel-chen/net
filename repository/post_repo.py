@@ -103,6 +103,13 @@ def list_categories(limit: int = 10) -> List[Dict]:
         return cursor.fetchall()
 
 
+def get_post_stats() -> Dict:
+    with get_cursor() as cursor:
+        cursor.execute("SELECT COUNT(*) AS total_posts, MAX(created_at) AS latest_created_at FROM posts")
+        row = cursor.fetchone() or {"total_posts": 0, "latest_created_at": None}
+        return row
+
+
 def get_post(post_id: int) -> Optional[Dict]:
     with get_cursor() as cursor:
         cursor.execute(

@@ -56,3 +56,11 @@ def list_categories(limit: int = 10):
 
 def list_reacted_posts(user_id: int, reaction_type: str, limit: int = 20):
     return [_normalize_post(item) for item in post_repo.list_reacted_by_user(user_id, reaction_type, limit)]
+
+
+def get_post_stats():
+    data = post_repo.get_post_stats()
+    return {
+        "total_posts": int(data.get("total_posts") or 0),
+        "latest_created_at": data.get("latest_created_at"),
+    }

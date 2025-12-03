@@ -1,37 +1,96 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="hero">
-    <h1>欢迎来到 TCP 博客</h1>
-    <p>使用底层 Socket 构建的迷你博客系统，支持文章浏览、搜索、分类、评论与互动。</p>
+<section class="hero-card">
+    <div class="hero-avatar">Blog</div>
+    <div class="hero-content">
+        <p class="eyebrow">迷你 Socket 博客</p>
+        <h1>欢迎来到 计网大作业 博客</h1>
+        <p class="lead">水文的狂欢</p>
+        <div class="hero-actions">
+            <a class="pill-btn" href="/posts/new"> 立即写文章</a>
+            <a class="ghost-btn" href="/monitor"> 查看网络指标</a>
+        </div>
+    </div>
+    <div class="hero-stats">
+        <div>
+            <p class="label">文章总数</p>
+            <p class="value">{{ post_stats.total_posts if post_stats is defined and post_stats else 0 }}</p>
+        </div>
+        <div>
+            <p class="label">最新更新</p>
+            <p class="value">{{ post_stats.latest_created_at if post_stats is defined and post_stats and post_stats.latest_created_at else '暂无数据' }}</p>
+        </div>
+        <div>
+            <p class="label">最新文章</p>
+            <p class="value">{{ latest_post.title if latest_post else '等待创作' }}</p>
+        </div>
+    </div>
 </section>
-<section class="search-panel">
+
+<section class="quick-nav">
+    <div class="section-header">
+        <h2>快捷导航</h2>
+        <p>快速查看常用分类或功能</p>
+    </div>
+    <div class="nav-grid">
+        <a class="nav-card" href="/profile">👤 个人中心</a>
+        <a class="nav-card" href="/monitor">⚡ 网络监测</a>
+        <a class="nav-card" href="/posts/new">📝 写文章</a>
+        {% for cat in categories %}
+        <a class="nav-card" href="/?tag={{ cat.category }}">#{{ cat.category }} · {{ cat.count }} 篇</a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="search-panel elevated">
     <form method="get" action="/">
-        <input type="text" name="q" placeholder="搜索标题或正文" value="{{ keyword }}">
-        <select name="tag">
-            <option value="">全部分类</option>
-            {% for cat in categories %}
-            <option value="{{ cat.category }}" {% if tag == cat.category %}selected{% endif %}>{{ cat.category }} ({{ cat.count }})</option>
-            {% endfor %}
-        </select>
-        <button type="submit">搜索</button>
+        <div class="input-group">
+            <label>搜索</label>
+            <input type="text" name="q" placeholder="搜索标题或正文" value="{{ keyword }}">
+        </div>
+        <div class="input-group">
+            <label>分类</label>
+            <select name="tag">
+                <option value="">全部分类</option>
+                {% for cat in categories %}
+                <option value="{{ cat.category }}" {% if tag == cat.category %}selected{% endif %}>{{ cat.category }} ({{ cat.count }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit">开始探索</button>
     </form>
 </section>
-<section class="post-list">
+
+<section class="post-list modern">
+    <div class="section-header">
+        <h2>最新文章</h2>
+        <a href="/profile">查看我的发布 →</a>
+    </div>
     {% if posts %}
+        <div class="post-grid">
         {% for post in posts %}
-        <article>
-            <h2><a href="/posts/{{ post.id }}">{{ post.title }}</a></h2>
-            <p class="meta">作者：{{ post.author_name }} · 分类：{{ post.tags or "未分类" }} · 发布时间：{{ post.created_at }}</p>
-            <p>{{ post.body[:200] }}{% if post.body|length > 200 %}...{% endif %}</p>
-            <div class="actions">
-                <a href="/posts/{{ post.id }}">阅读全文</a>
-                <span class="stat">👍 {{ post.like_count }}</span>
-                <span class="stat">⭐ {{ post.favorite_count }}</span>
+        <article class="post-card">
+            <div class="post-meta">
+                <span class="badge">{{ post.tags or '未分类' }}</span>
+                <span>{{ post.created_at }}</span>
+            </div>
+            <h3><a href="/posts/{{ post.id }}">{{ post.title }}</a></h3>
+            <p>{{ post.body[:160] }}{% if post.body|length > 160 %}...{% endif %}</p>
+            <div class="post-footer">
+                <div class="author">{{ post.author_name }}</div>
+                <div class="stats">
+                    <span>👍 {{ post.like_count }}</span>
+                    <span>⭐ {{ post.favorite_count }}</span>
+                </div>
             </div>
         </article>
         {% endfor %}
+        </div>
     {% else %}
-        <p>暂无文章，登录后可通过 API 创建。</p>
+        <div class="empty-state">
+            <p>还没有文章，赶紧成为第一位作者吧！</p>
+            <a class="pill-btn" href="/posts/new">开始创作</a>
+        </div>
     {% endif %}
 </section>
 {% endblock %}

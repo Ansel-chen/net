@@ -19,6 +19,8 @@ def home(request: HttpRequest) -> HttpResponse:
     tag = request.query.get("tag")
     posts = post_service.search_posts(keyword, tag, limit=20)
     categories = post_service.list_categories(limit=10)
+    stats = post_service.get_post_stats()
+    latest_post = posts[0] if posts else None
     return _render(
         "home.html",
         {
@@ -28,6 +30,8 @@ def home(request: HttpRequest) -> HttpResponse:
             "keyword": keyword or "",
             "tag": tag or "",
             "categories": categories,
+            "post_stats": stats,
+            "latest_post": latest_post,
         },
     )
 
@@ -77,6 +81,33 @@ def profile_page(request: HttpRequest) -> HttpResponse:
             "posts": posts,
             "liked_posts": liked_posts,
             "favorite_posts": favorite_posts,
+        },
+    )
+
+
+def search_page(request: HttpRequest) -> HttpResponse:
+    user = get_current_user(request)
+    keyword = (request.query.get("q") or "").strip()
+    tag = (request.query.get("tag") or "").strip()
+    categories = post_service.list_categories(limit=20)
+    has_query = bool(keyword or tag)
+    results = (
+        post_service.search_posts(keyword or None, tag or None, limit=50)
+        if has_query
+        else []
+    )
+    return _render(
+        "search.html",
+        {
+            "title": "搜索文章",
+            "user": user,
+            "keyword": keyword,
+            "tag": tag,
+            "results": results,
+            "result_count": len(results),
+            "categories": categories,
+            "has_query": has_query,
+            "search_keyword": keyword,
         },
     )
 

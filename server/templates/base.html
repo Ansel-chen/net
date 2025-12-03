@@ -8,26 +8,48 @@
 </head>
 <body>
 <header class="site-header">
-    <div class="brand"><a href="/">TCP 博客</a></div>
-    <nav>
-        <a href="/">首页</a>
-        <a href="/monitor">监测面板</a>
-        <a href="/profile">个人中心</a>
-        {% if user %}
-        <a href="/posts/new">写文章</a>
-        <span class="welcome">你好，{{ user.nickname }}</span>
-        <a href="/logout">退出</a>
-        {% else %}
-        <a href="/login">登录</a>
-        <a href="/register">注册</a>
-        {% endif %}
-    </nav>
+    <div class="header-inner">
+        <div class="brand">
+            <a href="/" class="logo">计网大作业博客</a>
+            <span class="tagline">以 Socket 构建的创作空间</span>
+        </div>
+        <button class="menu-toggle" id="nav-toggle" aria-label="切换导航">
+            <span></span><span></span><span></span>
+        </button>
+        <nav class="site-nav" id="site-nav">
+            <form class="nav-search" method="get" action="/search">
+                <input type="search" name="q" placeholder="搜索文章或作者" value="{{ search_keyword if search_keyword is defined else '' }}">
+                <button type="submit">搜索</button>
+            </form>
+            <a href="/">首页</a>
+            <a href="/monitor">监测面板</a>
+            <a href="/profile">个人中心</a>
+            {% if user %}
+            <a href="/posts/new" class="pill-btn">写文章</a>
+            <span class="welcome">你好，{{ user.nickname }}</span>
+            <a href="/logout" class="ghost-btn">退出</a>
+            {% else %}
+            <a href="/login">登录</a>
+            <a href="/register" class="pill-btn">注册</a>
+            {% endif %}
+        </nav>
+    </div>
 </header>
-<main>
+<main class="page-main">
     {% block content %}{% endblock %}
 </main>
 <footer class="site-footer">
     <p>基于 TCP/HTTP 协议的博客系统演示</p>
 </footer>
+<script>
+const navToggle = document.getElementById('nav-toggle');
+const siteNav = document.getElementById('site-nav');
+if (navToggle && siteNav) {
+    navToggle.addEventListener('click', () => {
+        siteNav.classList.toggle('open');
+        navToggle.classList.toggle('open');
+    });
+}
+</script>
 </body>
 </html>
